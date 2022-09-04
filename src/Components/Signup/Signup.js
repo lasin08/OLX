@@ -1,14 +1,43 @@
-import React from 'react';
+import React, { useState, useContext } from "react";
+import { useHistory } from "react-router-dom";
 
-import Logo from '../../olx-logo.png';
-import './Signup.css';
+import Logo from "../../olx-logo.png";
+import { FirebaseContext } from "../../store/Context";
+import "./Signup.css";
 
 export default function Signup() {
+  const history = useHistory();
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const { Firebase } = useContext(FirebaseContext);
+
+  function handleClick(e) {
+    e.preventDefault();
+    Firebase.auth()
+      .createUserWithEmailAndPassword(email, password)
+      .then((result) => {
+        result.user.updateProfile({ displayName: username }).then(() => {
+          Firebase.firestore()
+            .collection("users")
+            .add({
+              id: result.user.uid,
+              username: username,
+              phone: phone,
+            })
+            .then(() => {
+              history.push("/login");
+            });
+        });
+      });
+  }
+
   return (
     <div>
       <div className="signupParentDiv">
         <img width="200px" height="200px" src={Logo}></img>
-        <form>
+        <form onSubmit={handleClick}>
           <label htmlFor="fname">Username</label>
           <br />
           <input
@@ -17,6 +46,10 @@ export default function Signup() {
             id="fname"
             name="name"
             defaultValue="John"
+            onChange={(e) => {
+              setUsername(e.target.value);
+            }}
+            value={username}
           />
           <br />
           <label htmlFor="fname">Email</label>
@@ -27,6 +60,10 @@ export default function Signup() {
             id="fname"
             name="email"
             defaultValue="John"
+            onChange={(e) => {
+              setEmail(e.target.value);
+            }}
+            value={email}
           />
           <br />
           <label htmlFor="lname">Phone</label>
@@ -37,6 +74,10 @@ export default function Signup() {
             id="lname"
             name="phone"
             defaultValue="Doe"
+            onChange={(e) => {
+              setPhone(e.target.value);
+            }}
+            value={phone}
           />
           <br />
           <label htmlFor="lname">Password</label>
@@ -47,6 +88,10 @@ export default function Signup() {
             id="lname"
             name="password"
             defaultValue="Doe"
+            onChange={(e) => {
+              setPassword(e.target.value);
+            }}
+            value={password}
           />
           <br />
           <br />
